@@ -5,10 +5,12 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Web;
+using Microsoft.VisualBasic;
 
 namespace Sockets
 {
@@ -159,10 +161,43 @@ namespace Sockets
 
         private static byte[] ProcessRequest(Request request)
         {
-            // TODO
-            var head = new StringBuilder("OK");
-            var body = new byte[0];
-            return CreateResponseBytes(head, body);
+            string statusLine;
+            List<Header> headers;
+            switch (request.RequestUri)
+            {
+                case "/":
+                case "/hello.html":
+                    statusLine = "HTTP/1.1 200 OK\r\n";
+                    headers = new List<Header>
+                    {
+                        new("Content-Type", "text/html; charset=utf-8")
+                        //new("Content-Length", "1000")
+                        // Хром не грузит большой Content-Length
+                    };
+                    var helloHtml = File.ReadAllBytes("hello.html");
+                    return CreateResponseBytes(statusLine, headers, helloHtml);
+                case "/groot.gif":
+                    statusLine = "HTTP/1.1 200 OK\r\n";
+                    headers = new List<Header>
+                    {
+                        new("Content-Type", "image/gif")
+                    };
+                    var grootGif = File.ReadAllBytes("groot.gif");
+                    return CreateResponseBytes(statusLine, headers, grootGif);
+                case "/time.html":
+                    statusLine = "HTTP/1.1 200 OK\r\n";
+                    headers = new List<Header>
+                    {
+                        new("Content-Type", "text/html; charset=utf-8")
+                    };
+                    var timeTemplate = File.ReadAllBytes("time.template.html");
+                    var timeStr = Encoding.UTF8.GetString(timeTemplate).Replace("{{ServerTime}}", DateTime.Now.ToString());
+                    var timeHtml = Encoding.UTF8.GetBytes(timeStr);
+                    return CreateResponseBytes(statusLine, headers, timeHtml);
+                default:
+                    statusLine = "HTTP/1.1 404 Not Found\r\n";
+                    return CreateResponseBytes(new StringBuilder(statusLine + "\r\n"), Array.Empty<byte>());
+            }
         }
 
         // Собирает ответ в виде массива байт из байтов строки head и байтов body.
@@ -175,6 +210,19 @@ namespace Sockets
                 responseBytes, headBytes.Length,
                 body.Length);
             return responseBytes;
+        }
+
+        private static byte[] CreateResponseBytes(string statusLine, List<Header> headers, byte[] body)
+        {
+            var head = new StringBuilder(statusLine);
+
+            foreach (var header in headers)
+            {
+                head.Append($"{header.Name}: {header.Value}\r\n");
+            }
+            head.Append("\r\n");
+
+            return CreateResponseBytes(head, body);
         }
 
         private static void Send(Socket clientSocket, byte[] responseBytes)
