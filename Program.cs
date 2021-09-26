@@ -190,39 +190,6 @@ namespace Sockets
             }
         }
 
-        private static byte[] Process404()
-        {
-            var statusLine = "HTTP/1.1 404 Not Found\r\n";
-            return CreateResponseBytes(new StringBuilder(statusLine + "\r\n"), Array.Empty<byte>());
-        }
-
-        private static byte[] ProcessTime()
-        {
-            var statusLine = "HTTP/1.1 200 OK\r\n";
-            var headers = new List<Header>
-            {
-                new("Content-Type", "text/html; charset=utf-8")
-            };
-
-            var timeHtml = FormatTemplate(
-                File.ReadAllBytes("time.template.html"),
-                new Dictionary<string, string> { ["ServerTime"] = DateTime.Now.ToString() }
-            );
-
-            return CreateResponseBytes(statusLine, headers, timeHtml);
-        }
-
-        private static byte[] ProcessGroot()
-        {
-            var statusLine = "HTTP/1.1 200 OK\r\n";
-            var headers = new List<Header>
-            {
-                new("Content-Type", "image/gif")
-            };
-            var grootGif = File.ReadAllBytes("groot.gif");
-            return CreateResponseBytes(statusLine, headers, grootGif);
-        }
-
         private static byte[] ProcessMainPage(Request request)
         {
             var statusLine = "HTTP/1.1 200 OK\r\n";
@@ -257,6 +224,39 @@ namespace Sockets
             var helloHtml = FormatTemplate(File.ReadAllBytes("hello.html"), parameters);
 
             return CreateResponseBytes(statusLine, headers, helloHtml);
+        }
+
+        private static byte[] ProcessGroot()
+        {
+            var statusLine = "HTTP/1.1 200 OK\r\n";
+            var headers = new List<Header>
+            {
+                new("Content-Type", "image/gif")
+            };
+            var grootGif = File.ReadAllBytes("groot.gif");
+            return CreateResponseBytes(statusLine, headers, grootGif);
+        }
+
+        private static byte[] ProcessTime()
+        {
+            var statusLine = "HTTP/1.1 200 OK\r\n";
+            var headers = new List<Header>
+            {
+                new("Content-Type", "text/html; charset=utf-8")
+            };
+
+            var timeHtml = FormatTemplate(
+                File.ReadAllBytes("time.template.html"),
+                new Dictionary<string, string> { ["ServerTime"] = DateTime.Now.ToString() }
+            );
+
+            return CreateResponseBytes(statusLine, headers, timeHtml);
+        }
+
+        private static byte[] Process404()
+        {
+            var statusLine = "HTTP/1.1 404 Not Found\r\n";
+            return CreateResponseBytes(new StringBuilder(statusLine + "\r\n"), Array.Empty<byte>());
         }
 
         // Собирает ответ в виде массива байт из байтов строки head и байтов body.
