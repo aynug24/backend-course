@@ -159,45 +159,104 @@ namespace Sockets
             }
         }
 
+        private static byte[] FormatTemplate(byte[] template, Dictionary<string, string> parameters)
+        {
+            var templateStr = Encoding.UTF8.GetString(template);
+            foreach (var (name, value) in parameters)
+            {
+                var encodedValue = HttpUtility.HtmlEncode(value);
+                // можно сделать неск вложенных замен (это фича)
+                templateStr = templateStr.Replace($"{{{{{name}}}}}", encodedValue);
+            }
+            return Encoding.UTF8.GetBytes(templateStr);
+        }
+
         private static byte[] ProcessRequest(Request request)
         {
-            string statusLine;
-            List<Header> headers;
-            switch (request.RequestUri)
+            switch (request.RequestPath)
             {
                 case "/":
                 case "/hello.html":
-                    statusLine = "HTTP/1.1 200 OK\r\n";
-                    headers = new List<Header>
-                    {
-                        new("Content-Type", "text/html; charset=utf-8")
-                        //new("Content-Length", "1000")
-                        // Хром не грузит большой Content-Length
-                    };
-                    var helloHtml = File.ReadAllBytes("hello.html");
-                    return CreateResponseBytes(statusLine, headers, helloHtml);
+                    return ProcessMainPage(request);
+
                 case "/groot.gif":
-                    statusLine = "HTTP/1.1 200 OK\r\n";
-                    headers = new List<Header>
-                    {
-                        new("Content-Type", "image/gif")
-                    };
-                    var grootGif = File.ReadAllBytes("groot.gif");
-                    return CreateResponseBytes(statusLine, headers, grootGif);
+                    return ProcessGroot();
+
                 case "/time.html":
-                    statusLine = "HTTP/1.1 200 OK\r\n";
-                    headers = new List<Header>
-                    {
-                        new("Content-Type", "text/html; charset=utf-8")
-                    };
-                    var timeTemplate = File.ReadAllBytes("time.template.html");
-                    var timeStr = Encoding.UTF8.GetString(timeTemplate).Replace("{{ServerTime}}", DateTime.Now.ToString());
-                    var timeHtml = Encoding.UTF8.GetBytes(timeStr);
-                    return CreateResponseBytes(statusLine, headers, timeHtml);
+                    return ProcessTime();
+
                 default:
-                    statusLine = "HTTP/1.1 404 Not Found\r\n";
-                    return CreateResponseBytes(new StringBuilder(statusLine + "\r\n"), Array.Empty<byte>());
+                    return Process404();
             }
+        }
+
+        private static byte[] Process404()
+        {
+            var statusLine = "HTTP/1.1 404 Not Found\r\n";
+            return CreateResponseBytes(new StringBuilder(statusLine + "\r\n"), Array.Empty<byte>());
+        }
+
+        private static byte[] ProcessTime()
+        {
+            var statusLine = "HTTP/1.1 200 OK\r\n";
+            var headers = new List<Header>
+            {
+                new("Content-Type", "text/html; charset=utf-8")
+            };
+
+            var timeHtml = FormatTemplate(
+                File.ReadAllBytes("time.template.html"),
+                new Dictionary<string, string> { ["ServerTime"] = DateTime.Now.ToString() }
+            );
+
+            return CreateResponseBytes(statusLine, headers, timeHtml);
+        }
+
+        private static byte[] ProcessGroot()
+        {
+            var statusLine = "HTTP/1.1 200 OK\r\n";
+            var headers = new List<Header>
+            {
+                new("Content-Type", "image/gif")
+            };
+            var grootGif = File.ReadAllBytes("groot.gif");
+            return CreateResponseBytes(statusLine, headers, grootGif);
+        }
+
+        private static byte[] ProcessMainPage(Request request)
+        {
+            var statusLine = "HTTP/1.1 200 OK\r\n";
+            var headers = new List<Header>
+            {
+                new("Content-Type", "text/html; charset=utf-8")
+                //new("Content-Length", "1000")
+                // Хром не грузит большой Content-Length
+            };
+
+            var parameters = new Dictionary<string, string>();
+
+            if (request.QueryParameters["greeting"] is { } greeting)
+            {
+                parameters["Hello"] = greeting;
+            }
+
+            if (request.QueryParameters["name"] is { } name)
+            {
+                headers.Add(new("Set-Cookie", $"name={HttpUtility.UrlEncode(name)}"));
+            }
+            else
+            {
+                name = request.Cookies["name"]?.Value;
+            }
+
+            if (name is not null)
+            {
+                parameters["World"] = name;
+            }
+
+            var helloHtml = FormatTemplate(File.ReadAllBytes("hello.html"), parameters);
+
+            return CreateResponseBytes(statusLine, headers, helloHtml);
         }
 
         // Собирает ответ в виде массива байт из байтов строки head и байтов body.

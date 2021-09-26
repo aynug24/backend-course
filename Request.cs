@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Web;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -14,7 +17,12 @@ namespace Sockets
         public string Method;
         public string RequestUri;
         public string HttpVersion;
+
+        public string RequestPath;
+        public NameValueCollection QueryParameters;
+
         public List<Header> Headers;
+        public CookieCollection Cookies;
         public byte[] MessageBody;
 
         // Структура http-запроса: https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
@@ -28,17 +36,26 @@ namespace Sockets
             if (headers == null)
                 return null;
 
+            var cookies = ParseCookies(headers);
+
             int readBytesCount = Encoding.ASCII.GetBytes(requestString.Substring(0, readCharsCount)).Length;
             byte[] messageBody = ParseMessageBody(requestBytes, headers, readBytesCount);
             if (messageBody == null)
                 return null;
+
+            var (path, queryParams) = ParseUriParts(requestLine.RequestUri);
 
             return new Request
             {
                 Method = requestLine.Method,
                 RequestUri = requestLine.RequestUri,
                 HttpVersion = requestLine.HttpVersion,
+
+                RequestPath = path,
+                QueryParameters = queryParams,
+
                 Headers = headers,
+                Cookies = cookies,
                 MessageBody = messageBody
             };
         }
@@ -54,6 +71,21 @@ namespace Sockets
             string requestLineString = requestString.Substring(0, lineEnd);
             string[] requestLineParts = requestLineString.Split(' ');
             return new RequestLine(requestLineParts[0], requestLineParts[1], requestLineParts[2]);
+        }
+
+        private static (string path, NameValueCollection queryParams) ParseUriParts(string uri)
+        {
+            if (uri.IndexOf('?') is { } pathEndInd && pathEndInd == -1)
+            {
+                return (uri, new NameValueCollection());
+            }
+
+            var path = uri.Substring(0, pathEndInd);
+
+            var paramsStr = uri.Substring(pathEndInd + 1);
+            var queryParams = HttpUtility.ParseQueryString(paramsStr);
+
+            return (path, queryParams);
         }
 
         private static List<Header> ParseHeaders(string requestString, ref int readCharsCount)
@@ -80,6 +112,26 @@ namespace Sockets
 
             readCharsCount = lineStart + HttpLineSeparator.Length;
             return headers;
+        }
+
+        private static CookieCollection ParseCookies(List<Header> headers)
+        {
+            var cookies = new CookieCollection();
+
+            var cookieValues = headers.FirstOrDefault(header => header.Name == "Cookie")?.Value;
+            if (cookieValues is null)
+                return cookies;
+
+            foreach (var cookie in cookieValues
+                .Split(';')
+                .Select(cookieValue => cookieValue.Split('='))
+                .Where(cookieParts => cookieParts.Length == 2)
+                .Select(cookieParts => new Cookie(HttpUtility.UrlDecode(cookieParts[0]), HttpUtility.UrlDecode(cookieParts[1])))
+            )
+            {
+                cookies.Add(cookie);
+            }
+            return cookies;
         }
 
         private static byte[] ParseMessageBody(byte[] requestBytes, List<Header> headers, int readBytesCount)
@@ -116,7 +168,7 @@ namespace Sockets
         }
     }
 
-    [TestFixture]
+    [TestFixture] // новых тестов в задании не было)
     public class RequestSpecification
     {
         private const string RequestLine = "GET /users/1 HTTP/1.1\r\n";
@@ -134,7 +186,10 @@ namespace Sockets
                 Method = "GET",
                 HttpVersion = "HTTP/1.1",
                 RequestUri = "/users/1",
+                RequestPath = "/users/1",
+                QueryParameters = new NameValueCollection(),
                 Headers = new List<Header>(),
+                Cookies = new CookieCollection(),
                 MessageBody = new byte[0]
             };
         }
