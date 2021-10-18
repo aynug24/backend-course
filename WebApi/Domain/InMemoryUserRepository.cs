@@ -39,9 +39,9 @@ namespace Game.Domain
 
         public UserEntity GetOrCreateByLogin(string login)
         {
-            var existedUser = entities.Values.FirstOrDefault(u => u.Login == login);
-            if (existedUser != null)
-                return Clone(existedUser.Id, existedUser);
+            var existingUser = entities.Values.FirstOrDefault(u => u.Login == login);
+            if (existingUser != null)
+                return Clone(existingUser.Id, existingUser);
 
             var user = new UserEntity {Login = login};
             var entity = Clone(Guid.NewGuid(), user);

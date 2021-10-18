@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluentAssertions.Json;
 using System;
 using System.Net;
 using System.Net.Http;
