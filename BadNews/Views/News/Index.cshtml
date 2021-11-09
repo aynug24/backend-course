@@ -1,0 +1,56 @@
+﻿@using System.Web
+@using BadNews.Models.News
+
+@model IndexModel
+
+<main role="main" class="container">
+    <div class="row">
+        <div class="col-md-8 news-main">
+            
+            @foreach (var article in Model.PageArticles)
+            {
+                var fullArticleUrl = $"/news/fullarticle/{HttpUtility.UrlEncode(article.Id.ToString())}";
+
+                <div class="news-article">
+                    <h4 class="news-article-title">@article.Header</h4>
+                    <p class="news-article-meta">
+                        @article.Date.ToString("d MMM yyy", ViewBag.Culture)
+                    </p>
+                    <p class="mb-auto">
+                        @article.Header
+                    </p>
+                    <a href=@fullArticleUrl>Читать полностью</a>
+                </div>
+            }
+
+            <nav class="news-pagination">
+                @{
+                    var newerUrl = !Model.IsFirst
+                        ? $"/news?pageIndex={HttpUtility.UrlEncode((Model.PageIndex - 1).ToString())}"
+                        : "";
+                    var olderUrl = !Model.IsLast
+                        ? $"/news?pageIndex={HttpUtility.UrlEncode((Model.PageIndex + 1).ToString())}"
+                        : "";
+                }
+
+                <!-- <a class="btn btn-outline-secondary disabled" href="#" tabindex="-1" aria-disabled="true">Новее</a> -->
+                <a class="btn btn-outline-primary" href=@newerUrl>
+                    Новее
+                </a>
+                <!-- <a class="btn btn-outline-secondary disabled" href="#" tabindex="-1" aria-disabled="true">Старше</a> -->
+                <a class="btn btn-outline-primary" href=@olderUrl>
+                    Старше
+                </a>
+            </nav>
+        </div>
+
+        <aside class="col-md-4 news-sidebar">
+        </aside>
+    </div>
+</main>
+
+<footer class="news-footer">
+    <p>
+        <a href="#">Наверх</a>
+    </p>
+</footer>

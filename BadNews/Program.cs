@@ -45,7 +45,7 @@ namespace BadNews
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseEnvironment(Environments.Development);
+                    webBuilder.UseEnvironment(Environments.Production);
                 })
                 .UseSerilog((hostingContext, loggerConfiguration) =>
                     loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration));
