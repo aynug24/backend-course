@@ -52,7 +52,7 @@
                 }
                 else
                 {
-                    <a class="btn btn-outline-primary" asp-route-pageIndex=@(Model.PageIndex - 1)> @*по дефолту контр/экшн текущие*@
+                    <a class="btn btn-outline-primary" asp-route-pageIndex=@(Model.PageIndex - 1) asp-route-year=@(Model.Year)> @*по дефолту контр/экшн текущие*@
                         Новее
                     </a>
                 }
@@ -63,7 +63,7 @@
                 }
                 else
                 {
-                    <a class="btn btn-outline-primary" asp-route-pageIndex=@(Model.PageIndex + 1)>
+                    <a class="btn btn-outline-primary" asp-route-pageIndex=@(Model.PageIndex + 1) asp-route-year=@(Model.Year)>
                         Старше
                     </a>
                 }
@@ -71,6 +71,8 @@
         </div>
 
         <aside class="col-md-4 news-sidebar">
+            <vc:weather></vc:weather>
+            <vc:archive-links></vc:archive-links>
         </aside>
     </div>
 </main>

@@ -1,5 +1,6 @@
 ﻿using BadNews.ModelBuilders.News;
 using BadNews.Repositories.News;
+using BadNews.Repositories.Weather;
 using BadNews.Validation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -33,6 +34,7 @@ namespace BadNews
             services.AddSingleton<INewsRepository, NewsRepository>();
             services.AddSingleton<INewsModelBuilder, NewsModelBuilder>();
             services.AddSingleton<IValidationAttributeAdapterProvider, StopWordsAttributeAdapterProvider>();
+            services.AddSingleton<IWeatherForecastRepository, WeatherForecastRepository>();
         }
 
         // В этом методе конфигурируется последовательность обработки HTTP-запроса
