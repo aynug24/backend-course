@@ -32,7 +32,7 @@ namespace BadNews
 
             services.AddSingleton<INewsRepository, NewsRepository>();
             services.AddSingleton<INewsModelBuilder, NewsModelBuilder>();
-            services.AddSingleton<IValidationAttributeAdapterProvider, StopWordsAttributeAdapterProvider>();
+            //services.AddSingleton<IValidationAttributeAdapterProvider, StopWordsAttributeAdapterProvider>();
         }
 
         // В этом методе конфигурируется последовательность обработки HTTP-запроса
