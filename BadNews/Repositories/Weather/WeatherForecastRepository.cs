@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace BadNews.Repositories.Weather
@@ -24,25 +25,31 @@ namespace BadNews.Repositories.Weather
 
             var openWeatherForecast = await GetOpenWeatherForecastAsync(apiKey);
 
-            var weatherForecast = openWeatherForecast != null
+            return openWeatherForecast != null
                 ? WeatherForecast.CreateFrom(openWeatherForecast)
                 : BuildRandomForecast();
-
-            return weatherForecast;
         }
+
+        private const string resortToRngMsg = "Resorting to shaman-provided data.";
 
         private static async Task<OpenWeatherForecast> GetOpenWeatherForecastAsync(string apiKey)
         {
-            throw new Exception();
             try
             {
                 return await new OpenWeatherClient(apiKey).GetWeatherFromApiAsync();
-            } // дохло от формата json-а, хочется необязательные компоненты прям оборачивать в трай-рендеры
+            }
             catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException)
             {
-                Log.Error(ex, "Couldn't get open weather. Resorting to shaman-provided data.");
+                Log.Error(ex, $"Couldn't get open weather. {resortToRngMsg}");
+            }
+            catch (JsonException ex)
+            {
+                Log.Error(ex, $"Couldn't parse open weather. {resortToRngMsg}");
             }
 
+            // дохло от формата json-а (int -> decimal поля изменились)
+            // можно, кстати, оборачивать <vc:... /> в @try/catch, чтобы необязательный комп не валил весь сайт
+            // красота такая себе)
             return null;
         }
 

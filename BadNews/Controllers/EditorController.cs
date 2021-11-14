@@ -17,7 +17,7 @@ public class EditorController : Controller
         return View(new IndexViewModel());
     }
 
-    //[HttpPost] todo
+    [HttpPost]
     public IActionResult CreateArticle([FromForm] IndexViewModel model)
     {
         if (!ModelState.IsValid)
@@ -32,5 +32,12 @@ public class EditorController : Controller
         });
 
         return RedirectToAction("FullArticle", "News", new { id });
+    }
+
+    [HttpPost]
+    public IActionResult DeleteArticle([FromRoute] Guid id)
+    {
+        newsRepository.DeleteArticleById(id);
+        return RedirectToAction("Index", "News");
     }
 }

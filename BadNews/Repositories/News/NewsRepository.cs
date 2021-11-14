@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 
 namespace BadNews.Repositories.News

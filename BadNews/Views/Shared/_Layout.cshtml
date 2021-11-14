@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using BadNews.Elevation
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="utf-8" />
@@ -7,15 +8,25 @@
     <title>Bad News</title>
     <meta name="theme-color" content="#563d7c" />
     <link href="https://fonts.googleapis.com/css?family=Playfair+Display:700,900"
-          rel="stylesheet" />
-    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/css/site.css" />
+          rel="stylesheet"
+          asp-append-version="true" />
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
 </head>
 <body>
 <a href="/editor">Editor</a> @*todo*@
+<a href="/elevation?up">Give privilege</a>
+<a href="/elevation?a=56&up&down&up&c=g">Too</a>
+<a href="/elevation">Renounce privilege</a>
+<a href="/elevation?egehl">Too</a>
+<a href="/elevation?a=45&b">Too</a>
 <div class="container">
     <header class="news-header">
         <a class="news-header-logo text-dark" href="/">Bad News</a>
+        @if (ViewContext.IsElevated())
+        {
+            <span class="text-primary ml-2">есть привилегии</span>
+        }
     </header>
 
     <div class="nav-scroller py-1 mb-2"></div>
@@ -25,9 +36,9 @@
 
 @RenderBody()
 
-<script src="/lib/jquery/dist/jquery.min.js"></script>
-<script src="/lib/bootstrap/dist/js/bootstrap.bundle.js"></script>
-<script src="/js/site.js"></script>
+<script src="/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
+<script src="/lib/bootstrap/dist/js/bootstrap.bundle.js" asp-append-version="true"></script>
+<script src="/js/site.js" asp-append-version="true"></script>
 <partial name="_ValidationScriptsPartial" />
 </body>
 </html>
