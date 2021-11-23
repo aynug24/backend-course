@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 
 namespace Game.Domain
@@ -14,5 +15,6 @@ namespace Game.Domain
         void UpdateOrInsert(UserEntity user, out bool isInserted);
         void Delete(Guid id);
         PageList<UserEntity> GetPage(int pageNumber, int pageSize);
+        void UpdatePlayersOnGameFinished(IEnumerable<Guid> playersIds);
     }
 }

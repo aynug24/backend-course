@@ -7,7 +7,5 @@ namespace Game.Domain
     {
         GameTurnEntity Insert(GameTurnEntity gameTurn);
         IList<GameTurnEntity> GetLastTurns(GameEntity game, int limit);
-
-        // TODO: Спроектировать интерфейс исходя из потребностей ConsoleApp
     }
 }

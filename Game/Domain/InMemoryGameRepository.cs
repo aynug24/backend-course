@@ -14,14 +14,14 @@ namespace Game.Domain
                 throw new Exception();
 
             var id = Guid.NewGuid();
-            var entity = Clone(id, game);
+            var entity = game.WithId(id);
             entities[id] = entity;
-            return Clone(id, entity);
+            return entity.WithId(id);
         }
 
         public GameEntity FindById(Guid id)
         {
-            return entities.TryGetValue(id, out var entity) ? Clone(id, entity) : null;
+            return entities.TryGetValue(id, out var entity) ? entity.WithId(id) : null;
         }
 
         public void Update(GameEntity game)
@@ -29,7 +29,7 @@ namespace Game.Domain
             if (!entities.ContainsKey(game.Id))
                 return;
 
-            entities[game.Id] = Clone(game.Id, game);
+            entities[game.Id] = game.WithId(game.Id);
         }
 
         public IList<GameEntity> FindWaitingToStart(int limit)
@@ -38,7 +38,7 @@ namespace Game.Domain
                 .Select(pair => pair.Value)
                 .Where(e => e.Status == GameStatus.WaitingToStart)
                 .Take(limit)
-                .Select(e => Clone(e.Id, e))
+                .Select(e => e.WithId(e.Id))
                 .ToArray();
         }
 
@@ -48,13 +48,8 @@ namespace Game.Domain
                 || savedGame.Status != GameStatus.WaitingToStart)
                 return false;
 
-            entities[game.Id] = Clone(game.Id, game);
+            entities[game.Id] = game.WithId(game.Id);
             return true;
-        }
-
-        private GameEntity Clone(Guid id, GameEntity game)
-        {
-            return new GameEntity(id, game.Status, game.TurnsCount, game.CurrentTurnIndex, game.Players.ToList());
         }
     }
 }

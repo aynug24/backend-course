@@ -30,6 +30,8 @@ namespace ConsoleApp
 
         public static IMongoDatabase GetMongoDb()
         {
+            // в учебных целях можно и оставить логин-пароль))
+            // в реальном - не стоит, конечно
             var mongoConnectionString = "mongodb+srv://mongo:mongo_pwd@cluster0.aof6j.mongodb.net/mongo_test?retryWrites=true&w=majority";
             var mongoClientSettings = MongoClientSettings.FromConnectionString(mongoConnectionString);
             //mongoClientSettings.ClusterConfigurator = cb =>
@@ -114,17 +116,12 @@ namespace ConsoleApp
             if (humanUser.CurrentGameId == null) return null;
             var game = gameRepo.FindById(humanUser.CurrentGameId.Value);
             if (game == null) return null;
-            switch (game.Status)
+            return game.Status switch
             {
-                case GameStatus.WaitingToStart:
-                case GameStatus.Playing:
-                    return game;
-                case GameStatus.Finished:
-                case GameStatus.Canceled:
-                    return null;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                GameStatus.WaitingToStart or GameStatus.Playing => game,
+                GameStatus.Finished or GameStatus.Canceled => null,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
         }
 
         private bool HandleOneGameTurn(Guid humanUserId)
@@ -133,7 +130,8 @@ namespace ConsoleApp
 
             if (game.IsFinished())
             {
-                UpdatePlayersWhenGameFinished(game);
+                var playersIds = game.Players.Select(player => player.UserId);
+                userRepo.UpdatePlayersOnGameFinished(playersIds);
                 return false;
             }
 
@@ -166,19 +164,6 @@ namespace ConsoleApp
         private PlayerDecision GetAiDecision()
         {
             return (PlayerDecision)Math.Min(3, 1 + random.Next(4));
-        }
-
-        private void UpdatePlayersWhenGameFinished(GameEntity game)
-        {
-            // Вместо этого кода можно написать специализированный метод в userRepo, который сделает все эти обновления за одну операцию UpdateMany.
-            // Вместо 4 запросов к БД будет 1, но усложнится репозиторий. В данном случае, это редкая операция, поэтому нет смысла оптимизировать.
-            foreach (var player in game.Players)
-            {
-                var playerUser = userRepo.FindById(player.UserId);
-                if (playerUser == null) continue;
-                playerUser.ExitGame();
-                userRepo.Update(playerUser);
-            }
         }
 
         private static PlayerDecision? AskHumanDecision()

@@ -100,13 +100,19 @@ namespace Game.Domain
                 DateTime.UtcNow
             );
 
-            // Это должно быть после создания GameTurnEntity
             foreach (var player in Players)
                 player.Decision = null;
             CurrentTurnIndex++;
             if (CurrentTurnIndex == TurnsCount)
                 Status = GameStatus.Finished;
             return result;
+        }
+
+        public GameEntity WithId(Guid id)
+        {
+            return new GameEntity(
+                id, Status, TurnsCount, CurrentTurnIndex, Players.ToList()
+            );
         }
     }
 }

@@ -27,26 +27,26 @@ namespace Game.Domain
                 throw new InvalidOperationException();
 
             var id = Guid.NewGuid();
-            var entity = Clone(id, user);
+            var entity = user.WithId(id);
             entities[id] = entity;
-            return Clone(id, entity);
+            return entity.WithId(id);
         }
 
         public UserEntity FindById(Guid id)
         {
-            return entities.TryGetValue(id, out var entity) ? Clone(id, entity) : null;
+            return entities.TryGetValue(id, out var entity) ? entity.WithId(id) : null;
         }
 
         public UserEntity GetOrCreateByLogin(string login)
         {
-            var existedUser = entities.Values.FirstOrDefault(u => u.Login == login);
-            if (existedUser != null)
-                return Clone(existedUser.Id, existedUser);
+            var existingUser = entities.Values.FirstOrDefault(u => u.Login == login);
+            if (existingUser != null)
+                return existingUser.WithId(existingUser.Id);
 
             var user = new UserEntity {Login = login};
-            var entity = Clone(Guid.NewGuid(), user);
+            var entity = user.WithId(Guid.NewGuid());
             entities[entity.Id] = entity;
-            return Clone(entity.Id, entity);
+            return entity.WithId(entity.Id);
         }
 
         public void Update(UserEntity user)
@@ -54,7 +54,7 @@ namespace Game.Domain
             if (!entities.ContainsKey(user.Id))
                 return;
 
-            entities[user.Id] = Clone(user.Id, user);
+            entities[user.Id] = user.WithId(user.Id);
         }
 
         public void UpdateOrInsert(UserEntity user, out bool isInserted)
@@ -65,12 +65,12 @@ namespace Game.Domain
             var id = user.Id;
             if (entities.ContainsKey(id))
             {
-                entities[id] = Clone(id, user);
+                entities[id] = user.WithId(id);
                 isInserted = false;
                 return;
             }
 
-            var entity = Clone(id, user);
+            var entity = user.WithId(id);
             entities[id] = entity;
             isInserted = true;
         }
@@ -87,14 +87,21 @@ namespace Game.Domain
                 .OrderBy(u => u.Login)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(u => Clone(u.Id, u))
+                .Select(u => u.WithId(u.Id))
                 .ToList();
             return new PageList<UserEntity>(items, count, pageNumber, pageSize);
         }
 
-        private UserEntity Clone(Guid id, UserEntity user)
+        public void UpdatePlayersOnGameFinished(IEnumerable<Guid> playersIds)
         {
-            return new UserEntity(id, user.Login, user.LastName, user.FirstName, user.GamesPlayed, user.CurrentGameId);
+            foreach (var userId in playersIds)
+            {
+                if (!entities.TryGetValue(userId, out var user))
+                    continue;
+
+                user.CurrentGameId = null;
+                user.GamesPlayed++;
+            }
         }
     }
 }

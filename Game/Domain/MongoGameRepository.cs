@@ -17,7 +17,6 @@ namespace Game.Domain
             gameCollection.Indexes.CreateOne(
                 new CreateIndexModel<GameEntity>(
                     Builders<GameEntity>.IndexKeys.Ascending(game => game.Status)
-                    //new CreateIndexOptions { Unique = true }
                 )
             );
         }
@@ -28,7 +27,7 @@ namespace Game.Domain
                 throw new InvalidOperationException();
 
             var id = Guid.NewGuid();
-            var entity = Clone(id, game);
+            var entity = game.WithId(id);
 
             gameCollection.InsertOne(entity);
 
@@ -49,7 +48,6 @@ namespace Game.Domain
             );
         }
 
-        // Возвращает не более чем limit игр со статусом GameStatus.WaitingToStart
         public IList<GameEntity> FindWaitingToStart(int limit)
         {
             return gameCollection
@@ -58,10 +56,8 @@ namespace Game.Domain
                 .ToList();
         }
 
-        // Обновляет игру, если она находится в статусе GameStatus.WaitingToStart
         public bool TryUpdateWaitingToStart(GameEntity game)
         {
-
             var replaceResult = gameCollection.ReplaceOne(
                 otherGame => otherGame.Id == game.Id && otherGame.Status == GameStatus.WaitingToStart,
                 game
@@ -69,11 +65,6 @@ namespace Game.Domain
 
             // так если в игре ничего не изменилось, InMemoryRepo возвращает true, поэтому ModifiedCount такое себе
             return replaceResult.MatchedCount == 1;
-        }
-
-        private GameEntity Clone(Guid id, GameEntity game)
-        {
-            return new GameEntity(id, game.Status, game.TurnsCount, game.CurrentTurnIndex, game.Players.ToList());
         }
     }
 }

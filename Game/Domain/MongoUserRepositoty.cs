@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -29,7 +31,7 @@ namespace Game.Domain
                 throw new InvalidOperationException();
 
             var id = Guid.NewGuid();
-            var entity = Clone(id, user);
+            var entity = user.WithId(id);
 
             userCollection.InsertOne(entity);
 
@@ -119,9 +121,15 @@ namespace Game.Domain
             isInserted = updateResult.MatchedCount == 0;
         }
 
-        private UserEntity Clone(Guid id, UserEntity user)
+        public void UpdatePlayersOnGameFinished(IEnumerable<Guid> playersIds)
         {
-            return new UserEntity(id, user.Login, user.LastName, user.FirstName, user.GamesPlayed, user.CurrentGameId);
+            var usersToUpd = Builders<UserEntity>.Filter.In(user => user.Id, playersIds);
+
+            var update = Builders<UserEntity>.Update
+                .Inc(user => user.GamesPlayed, 1)
+                .Set(user => user.CurrentGameId, null);
+
+            userCollection.UpdateMany(usersToUpd, update);
         }
     }
 }

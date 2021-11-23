@@ -64,5 +64,12 @@ namespace Game.Domain
                 CurrentGameId = null;
             }
         }
+
+        public UserEntity WithId(Guid id)
+        {
+            return new UserEntity(
+                id, Login, LastName, FirstName, GamesPlayed, CurrentGameId
+            );
+        }
     }
 }

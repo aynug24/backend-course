@@ -13,7 +13,7 @@ namespace Game.Domain
 
         public List<Player> Players { get; init; }
 
-        // Guid of winning player
+        // User guid of winning player
         public Guid WinnerId { get; init; }
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
@@ -49,7 +49,7 @@ namespace Game.Domain
             };
         }
 
-        // будем считать, что эта штука в интерфейсе, потом его реализации, потом создаётся новая, всё такое,
+        // будем считать, что эта штука в интерфейсе, потом его реализации, потом new Fmter(), всё такое,
         // но в рамках задания оставим тут
         public string Format()
         {
