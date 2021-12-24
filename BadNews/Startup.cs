@@ -43,6 +43,7 @@ namespace BadNews
                 options.EnableForHttps = true;
             });
             services.AddSignalR();
+            services.AddServerSideBlazor();
             services.AddMemoryCache();
             var mvcBuilder = services.AddControllersWithViews();
             if (env.IsDevelopment())
@@ -59,18 +60,7 @@ namespace BadNews
 
             app.UseHttpsRedirection();
             app.UseResponseCompression();
-            app.UseStaticFiles(new StaticFileOptions()
-            {
-                OnPrepareResponse = options =>
-                {
-                    options.Context.Response.GetTypedHeaders().CacheControl =
-                        new Microsoft.Net.Http.Headers.CacheControlHeaderValue()
-                        {
-                            Public = false,
-                            MaxAge = TimeSpan.FromDays(1)
-                        };
-                }
-            });
+            app.UseStaticFiles();
             app.UseSerilogRequestLogging();
             app.UseStatusCodePagesWithReExecute("/StatusCode/{0}");
 
@@ -85,6 +75,7 @@ namespace BadNews
                 });
                 endpoints.MapControllerRoute("default", "{controller=News}/{action=Index}/{id?}");
                 endpoints.MapHub<CommentsHub>("/commentsHub");
+                endpoints.MapBlazorHub();
             });
             app.MapWhen(context => context.Request.IsElevated(), branchApp =>
             {
