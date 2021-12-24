@@ -17,7 +17,7 @@ namespace BadNews.Controllers
         }
 
         // GET
-        [HttpGet("api/news/{id}/comments")]
+        [HttpGet("api/news/{newsId}/comments")]
         public ActionResult<CommentsDto> GetCommentsForNews(Guid newsId)
         {
             if (newsId == Guid.Empty)

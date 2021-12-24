@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
+using BadNews.Repositories.Comments;
 
 namespace BadNews
 {
@@ -32,6 +33,7 @@ namespace BadNews
         {
             services.AddSingleton<INewsRepository, NewsIndexedRepository>();
             services.AddSingleton<INewsModelBuilder, NewsModelBuilder>();
+            services.AddSingleton<CommentsRepository>();
             services.AddSingleton<IValidationAttributeAdapterProvider, StopWordsAttributeAdapterProvider>();
             services.AddSingleton<IWeatherForecastRepository, WeatherForecastRepository>();
             services.Configure<OpenWeatherOptions>(configuration.GetSection("OpenWeather"));
